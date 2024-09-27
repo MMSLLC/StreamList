@@ -1,51 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 
 function StreamList() {
-  // State variables for managing movies, editing, and watched movies
-  const [movie, setMovie] = useState(''); // Input field state
-  const [movies, setMovies] = useState([]); // List of movies
-  const [isEditing, setIsEditing] = useState(false); // Edit mode state
-  const [currentIndex, setCurrentIndex] = useState(null); // Current movie index being edited
-  const [watchedMovies, setWatchedMovies] = useState([]); // List of watched movies
+  const [movie, setMovie] = useState(''); 
+  const [movies, setMovies] = useState(() => {
+    
+    const savedMovies = localStorage.getItem('movies');
+    return savedMovies ? JSON.parse(savedMovies) : [];
+  });
+  const [isEditing, setIsEditing] = useState(false); 
+  const [currentIndex, setCurrentIndex] = useState(null); 
+  const [watchedMovies, setWatchedMovies] = useState(() => {
+   
+    const savedWatched = localStorage.getItem('watchedMovies');
+    return savedWatched ? JSON.parse(savedWatched) : [];
+  });
 
-  // Function to add or update a movie
+  
+  useEffect(() => {
+    localStorage.setItem('movies', JSON.stringify(movies));
+  }, [movies]);
+
+  useEffect(() => {
+    localStorage.setItem('watchedMovies', JSON.stringify(watchedMovies));
+  }, [watchedMovies]);
+
   const handleAddMovie = (e) => {
     e.preventDefault();
     if (movie.trim()) {
       if (isEditing) {
-        // Update existing movie
         const updatedMovies = [...movies];
         updatedMovies[currentIndex] = movie;
         setMovies(updatedMovies);
         setIsEditing(false);
         setCurrentIndex(null);
       } else {
-        // Add new movie to the list
         setMovies([...movies, movie]);
       }
-      setMovie(''); // Clear input after adding or updating
+      setMovie('');
     }
   };
 
-  // Function to handle editing a movie
   const handleEditMovie = (index) => {
     setIsEditing(true);
     setCurrentIndex(index);
-    setMovie(movies[index]); // Set the movie to be edited in the input field
+    setMovie(movies[index]);
   };
 
-  // Function to handle deleting a movie
   const handleDeleteMovie = (index) => {
-    setMovies(movies.filter((_, i) => i !== index)); // Remove the selected movie
+    setMovies(movies.filter((_, i) => i !== index));
     if (isEditing && index === currentIndex) {
       setIsEditing(false);
-      setMovie(''); // Reset input if the currently edited movie is deleted
+      setMovie('');
     }
   };
 
-  // Function to handle marking a movie as watched
   const handleCompleteMovie = (index) => {
     const watchedMovie = movies[index];
     if (!watchedMovies.includes(watchedMovie)) {
